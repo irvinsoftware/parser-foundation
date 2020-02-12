@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Irvin.Parser</RootNamespace>
+    <AssemblyName>ParserFoundation</AssemblyName>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.0.1</Version>
+    <Authors>Irvin Software Products, LLC</Authors>
+    <Product />
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Copyright>Copyright © 2014-2020</Copyright>
+  </PropertyGroup>
+
+</Project>
