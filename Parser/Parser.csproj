@@ -12,6 +12,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Copyright>Copyright © 2014-2020</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Description>Provides base functionality for implementing parsers.</Description>
   </PropertyGroup>
 
   <ItemGroup>
