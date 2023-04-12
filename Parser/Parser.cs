@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Diagnostics;
 using System.Text;
 
 namespace Irvin.Parser
@@ -8,17 +8,36 @@ namespace Irvin.Parser
     {
         protected abstract ParserSettings GetSettings();
 
-        public TokenCollection Parse(string content, StringComparison compareOption = StringComparison.CurrentCultureIgnoreCase)
+        public TokenCollection Parse(string content, 
+                                     StringComparison compareOption = StringComparison.CurrentCultureIgnoreCase,
+                                     TimeSpan? timeout = null)
         {
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+            timeout = timeout ?? TimeSpan.FromSeconds(5);
+            if (Debugger.IsAttached)
+            {
+                timeout = TimeSpan.MaxValue;
+            }
+            
             TokenCollection elements = new TokenCollection();
             ParserSettings settings = GetSettings();
 
             int i = 0;
+            int passes = 0;
             int bufferBegin = 0;
             StringBuilder buffer = new StringBuilder();
             SubgroupSettings applicableSubgroup = null;
             while (i < content.Length)
             {
+                passes++;
+                Debug.Assert(passes <= content.Length);
+                Debug.Assert(buffer.Length <= content.Length);
+                if (timer.Elapsed.TotalMilliseconds >= timeout.Value.TotalMilliseconds)
+                {
+                    throw new TimeoutException();
+                }
+                
                 char thisChar = content[i];
                 buffer.Append(thisChar);
                 string realizedBuffer = buffer.ToString();
@@ -49,16 +68,26 @@ namespace Irvin.Parser
                         string subContent = realizedBuffer.Substring(applicableSubgroup.StartSymbol.Length,
                             subContentLength);
 
-                        elements.Add(new Token
+                        Add(elements, new Token
                         {
                             Content = realizedBuffer,
                             SubContent = subContent,
                             StartPosition = bufferBegin,
+                            IsSubGroup = true
                         });
 
                         applicableSubgroup = null;
                         buffer.Clear();
                         bufferBegin = i + 1;
+                    }
+                    else
+                    {
+                        int endSectionStart = content.IndexOf(applicableSubgroup.EndSymbol, bufferBegin + 1, compareOption);
+                        int endSectionEnd = endSectionStart + applicableSubgroup.EndSymbol.Length - 1;
+                        int substringStart = bufferBegin + applicableSubgroup.StartSymbol.Length;
+                        string substring = content.Substring(substringStart, endSectionEnd - substringStart);
+                        buffer.Append(substring);
+                        i = endSectionEnd - 1;
                     }
                 }
                 else
@@ -85,11 +114,11 @@ namespace Irvin.Parser
                             {
                                 string relevantBufferSection;
 
-                                //preceeding content
+                                //preceding content
                                 if (buffer.Length > match.Delimiter.Length)
                                 {
                                     relevantBufferSection = realizedBuffer.Substring(0, buffer.Length - match.Delimiter.Length);
-                                    elements.Add(new Token
+                                    Add(elements, new Token
                                     {
                                         Content = relevantBufferSection,
                                         StartPosition = bufferBegin,
@@ -99,7 +128,7 @@ namespace Irvin.Parser
                                 //delimiter
                                 int delimiterStartIndex = buffer.Length - match.Delimiter.Length;
                                 relevantBufferSection = realizedBuffer.Substring(delimiterStartIndex, match.Delimiter.Length);
-                                elements.Add(new Token
+                                Add(elements, new Token
                                 {
                                     Content = relevantBufferSection,
                                     StartPosition = bufferBegin + delimiterStartIndex,
@@ -119,14 +148,22 @@ namespace Irvin.Parser
 
             if (buffer.Length > 0)
             {
-                elements.Add(new Token
+                Add(elements, new Token
                 {
                     Content =  buffer.ToString(),
                     StartPosition = bufferBegin
                 });
             }
 
+            timer.Stop();
+            Debug.Print($"Parse time: {timer.Elapsed}");
             return elements;
+        }
+
+        private void Add(TokenCollection elements, Token token)
+        {
+            elements.Add(token);
+            //Debug.Print($"{token.StartPosition}: {token}");
         }
     }
 }

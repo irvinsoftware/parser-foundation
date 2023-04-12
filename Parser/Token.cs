@@ -7,9 +7,10 @@ namespace Irvin.Parser
     public class Token
     {
         public string Content { get; internal set; }
-        public string SubContent { get; set; }
+        public string SubContent { get; internal set; }
         public int StartPosition { get; internal set; }
         public bool IsDelimiter { get; internal set; }
+        public bool IsSubGroup { get; internal set; }
 
         public override string ToString()
         {

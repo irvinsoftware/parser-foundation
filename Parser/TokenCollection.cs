@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Irvin.Parser
 {
@@ -15,6 +16,12 @@ namespace Irvin.Parser
             _currentIndex = -1;
             _tokens = new List<Token>();
             _checkpoints = new Stack<int>();
+        }
+
+        public TokenCollection(IEnumerable<Token> source)
+            : this()
+        {
+            _tokens.AddRange(source);
         }
 
         public Token Current
@@ -148,6 +155,15 @@ namespace Irvin.Parser
             return _tokens[_currentIndex + 1];
         }
 
+        public IEnumerable<Token> ReadToEnd()
+        {
+            while (HasNext())
+            {
+                yield return Current;
+                MoveNext();
+            }
+        }
+
         public void SetCheckpoint()
         {
             if (_currentIndex < 0)
@@ -161,6 +177,17 @@ namespace Irvin.Parser
         public void Rewind()
         {
             _currentIndex = _checkpoints.Pop();
+        }
+
+        public bool RewindIfPossible()
+        {
+            if (_checkpoints.Any())
+            {
+                Rewind();
+                return true;
+            }
+
+            return false;
         }
     }
 }
