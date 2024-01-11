@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Irvin.Parser
 {
@@ -15,6 +16,12 @@ namespace Irvin.Parser
             _currentIndex = -1;
             _tokens = new List<Token>();
             _checkpoints = new Stack<int>();
+        }
+
+        public TokenCollection(IEnumerable<Token> tokens)
+            : this()
+        {
+            _tokens.AddRange(tokens);
         }
 
         public Token Current
@@ -33,7 +40,7 @@ namespace Irvin.Parser
         {
             _tokens.Add(token);
         }
-
+        
         public TokenCollection MoveNext()
         {
             if (!HasNext())
@@ -48,6 +55,18 @@ namespace Irvin.Parser
         public bool HasNext()
         {
             return _currentIndex < _tokens.Count - 1;
+        }
+        
+        public TokenCollection MoveToNextNonWhiteSpace()
+        {
+            return MoveToNextNonWhiteSpace(out _);
+        }
+        
+        public TokenCollection MoveToNextNonWhiteSpace(out List<Token> whitespace)
+        {
+            MoveNext();
+            whitespace = new List<Token>(MoveUntil(x => !x.IsWhitespace));
+            return this;
         }
 
         public TokenCollection MoveNextSkippingSpaces()
@@ -106,6 +125,15 @@ namespace Irvin.Parser
             return this;
         }
 
+        /// <summary>
+        /// Iterates through the collection until finding the token that does not match the predicate. 
+        /// Ends on the first token that does not match, or the end of the collection.
+        /// </summary>
+        /// <param name="predicate">any valid token conditional</param>
+        /// <returns>
+        /// The tokens that were iterated through, except the last one.
+        /// (If not matching token was found and the collection was exhausted, the returned list contains everything iterated over.)
+        /// </returns>
         public ReadOnlyCollection<Token> MoveUntil(Func<Token, bool> predicate)
         {
             IList<Token> tokens = new List<Token>();
@@ -138,6 +166,17 @@ namespace Irvin.Parser
             return new ReadOnlyCollection<Token>(tokens);
         }
 
+        /// <summary>
+        /// The same as <see cref="MoveUntil"/>, except the current token is also returned.
+        /// </summary>
+        /// <param name="predicate">any valid token conditional</param>
+        /// <returns>The tokens that were iterated through, including the last one OR all remaining tokens if predicate never matched.</returns>
+        public ReadOnlyCollection<Token> MoveUntilInclusive(Func<Token, bool> predicate)
+        {
+            ReadOnlyCollection<Token> captures = MoveUntil(predicate);
+            return new ReadOnlyCollection<Token>(captures.Union(new [] { Current }).ToList());
+        }
+
         public Token PeekNext()
         {
             if (!HasNext())
@@ -158,9 +197,32 @@ namespace Irvin.Parser
             _checkpoints.Push(_currentIndex);
         }
 
+        /// <summary>
+        /// Reverts the collection back to the most recent checkpoint
+        /// </summary>
+        /// <exception cref="InvalidOperationException">if no checkpoints currently set</exception>
         public void Rewind()
         {
             _currentIndex = _checkpoints.Pop();
+        }
+
+        /// <summary>
+        /// Converts the entire collection to IEnumerable (from start to end, not current to end)
+        /// </summary>
+        /// <returns>enumerable object</returns>
+        public IEnumerable<Token> ToEnumerable()
+        {
+            return new List<Token>(_tokens);
+        }
+
+        public IEnumerable<Token> Remaining()
+        {
+            if (_currentIndex > -1 && _currentIndex < _tokens.Count)
+            {
+                return _tokens.GetRange(_currentIndex, _tokens.Count - _currentIndex);
+            }
+
+            return null;
         }
     }
 }
