@@ -5,5 +5,7 @@
         public string StartSymbol { get; set; }
         public string EscapeSymbol { get; set; }
         public string EndSymbol { get; set; }
+
+        public bool EscapeIsSameAsEmpty => StartSymbol + EndSymbol == EscapeSymbol;
     }
 }

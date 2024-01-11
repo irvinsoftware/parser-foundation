@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
 
 namespace Irvin.Parser
@@ -26,13 +25,29 @@ namespace Irvin.Parser
                 if (applicableSubgroup == null)
                 {
                     applicableSubgroup = settings.Subgroups.Find(x => x.StartSymbol.Equals(realizedBuffer, compareOption));
-                }
 
+                    if (applicableSubgroup?.EscapeIsSameAsEmpty == true)
+                    {
+                        string contentSegment = GetEscapeSymbolIfPresent(content, applicableSubgroup, i);
+                        if (contentSegment.Equals(applicableSubgroup.EscapeSymbol, compareOption))
+                        {
+                            elements.Add(new Token
+                            {
+                                Content = contentSegment,
+                                StartPosition = i
+                            });
+                            buffer.Clear();
+                            applicableSubgroup = null;
+                            i += 2;
+                            bufferBegin = i;
+                            continue;
+                        }
+                    }
+                }
+                
                 if (applicableSubgroup != null)
                 {
-                    string contentSegment = applicableSubgroup.EscapeSymbol != null
-                        ? content.Substring(i, applicableSubgroup.EscapeSymbol.Length)
-                        : string.Empty;
+                    string contentSegment = GetEscapeSymbolIfPresent(content, applicableSubgroup, i);
 
                     if (contentSegment.Equals(applicableSubgroup.EscapeSymbol, compareOption))
                     {
@@ -85,7 +100,7 @@ namespace Irvin.Parser
                             {
                                 string relevantBufferSection;
 
-                                //preceeding content
+                                //preceding content
                                 if (buffer.Length > match.Delimiter.Length)
                                 {
                                     relevantBufferSection = realizedBuffer.Substring(0, buffer.Length - match.Delimiter.Length);
@@ -127,6 +142,14 @@ namespace Irvin.Parser
             }
 
             return elements;
+        }
+
+        private static string GetEscapeSymbolIfPresent(string content, SubgroupSettings applicableSubgroup, int position)
+        {
+            return applicableSubgroup.EscapeSymbol != null 
+                        && content.Length > position + applicableSubgroup.EscapeSymbol.Length
+                ? content.Substring(position, applicableSubgroup.EscapeSymbol.Length)
+                : string.Empty;
         }
     }
 }
