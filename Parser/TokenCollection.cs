@@ -217,7 +217,12 @@ namespace Irvin.Parser
 
         public IEnumerable<Token> Remaining()
         {
-            if (_currentIndex > -1 && _currentIndex < _tokens.Count)
+            if (_currentIndex == -1)
+            {
+                MoveNext();
+            }
+            
+            if (_currentIndex < _tokens.Count)
             {
                 return _tokens.GetRange(_currentIndex, _tokens.Count - _currentIndex);
             }
