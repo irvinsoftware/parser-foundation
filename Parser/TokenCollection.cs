@@ -35,10 +35,20 @@ namespace Irvin.Parser
                 return _tokens[_currentIndex];
             }
         }
-
+        
         internal void Add(Token token)
         {
             _tokens.Add(token);
+        }
+
+        public TokenCollection EnsureReady()
+        {
+            if (_currentIndex == -1 && _tokens.Count > 0)
+            {
+                MoveNext();
+            }
+            
+            return this;
         }
         
         public TokenCollection MoveNext()

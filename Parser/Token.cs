@@ -42,12 +42,12 @@ namespace Irvin.Parser
 
         public bool IsSpace => Content == " " || Content == "\t";
         public bool IsSpaceOrNewLine => IsSpace || Content == Environment.NewLine;
-        public bool IsSpaceOrLineFeed => IsSpace || Content == "\n";
-        
+        public bool IsSpaceOrLineFeed => IsSpace || IsLineFeed;
+        public bool IsLineFeed => Content == "\n";
+
         /// <summary>
         /// The token's text matches the Unicode definition of whitespace.
         /// </summary>
         public bool IsWhitespace => Content.All(char.IsWhiteSpace);
-
     }
 }
