@@ -5,11 +5,11 @@
     <AssemblyName>ParserFoundation</AssemblyName>
     <AssemblyVersion>1.0.1.0</AssemblyVersion>
     <FileVersion>1.0.1.0</FileVersion>
-    <Version>1.0.1</Version>
-    <Authors>Irvin Software Products, LLC</Authors>
+    <Version>1.1.0</Version>
+    <Authors>Nate Irvin</Authors>
     <Product />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Copyright>Copyright © 2014-2020</Copyright>
+    <Copyright>Copyright © Nathaniel Irvin 2014-2024</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Description>Provides base functionality for implementing parsers.</Description>
     <RepositoryUrl>https://github.com/irvinsoftware/parser-foundation</RepositoryUrl>
@@ -34,7 +34,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Irvin.SystemExtensions" Version="1.4.0" Condition=" '$(Configuration)' != 'DebugEverything' " />
+    <PackageReference Include="Irvin.SystemExtensions" Version="1.5.0" Condition=" '$(Configuration)' != 'DebugEverything' " />
     <ProjectReference Include="$(SolutionDir)\system-extensions\SystemExtensions.Standard\SystemExtensions.Standard.csproj" Condition=" '$(Configuration)' == 'DebugEverything' " />
   </ItemGroup>
 
